@@ -7,14 +7,32 @@ static const int startwithgaps	     = 1;	 /* 1 means gaps are used by default */
 static const unsigned int gappx     = 10;       /* default gap between windows in pixels */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
-static const char *fonts[]          = { "monospace:size=10", "fontawesome:size=12" };
-static const char dmenufont[]       = "monospace:size=10";
+static const char *fonts[]          = { "Terminus:size=10", "fontawesome:size=12" };
+static const char dmenufont[]       = "Terminus:size=10";
+/*
+ * Color references,
+ *
+ * Suckless Defaults:
+ * #222222
+ * #444444
+ * #bbbbbb
+ * #eeeeee
+ * #005577
+ *
+ * Meine:
+ * #3B77BC
+ * #
+ * #
+ * #
+ * #
+ * #
+ */
 static const char col_gray1[]       = "#222222";
 static const char col_gray2[]       = "#444444";
 static const char col_gray3[]       = "#bbbbbb";
 static const char col_gray4[]       = "#eeeeee";
-static const char col_cyan[]        = "#005577";
-static const unsigned int baralpha = 0xd0;
+static const char col_cyan[]        = "#AB2B28";
+static const unsigned int baralpha = OPAQUE; // 0xd0
 static const unsigned int borderalpha = OPAQUE;
 static const char *colors[][3]      = {
 	/*               fg         bg         border   */
@@ -69,15 +87,15 @@ static const Layout layouts[] = {
 	{ MODKEY|ControlMask|ShiftMask, KEY,      toggletag,      {.ui = 1 << TAG} },
 
 /* helper for spawning shell commands in the pre dwm-5.0 fashion */
-#define SHCMD(cmd) { .v = (const char*[]){ "/bin/zsh", "-c", cmd, NULL } }
+#define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
-static const char *termcmd[]  = { "st", NULL };
+static const char *termcmd[]  = { "alacritty", NULL };
 /* backlight */
-static const char *brupcmd[] = { "sudo", "xbacklight", "-inc", "10", NULL };
-static const char *brdowncmd[] = { "sudo", "xbacklight", "-dec", "10", NULL };
+static const char *brupcmd[] = { "xbacklight", "-inc", "10", NULL };
+static const char *brdowncmd[] = { "xbacklight", "-dec", "10", NULL };
  /* voice control */
 static const char *vdowncmd[] = { "pamixer", "--allow-boost", "-d", "3", NULL};
 static const char *vupcmd[] = { "pamixer", "--allow-boost", "-i", "3", NULL};
@@ -92,20 +110,22 @@ static const char *musicnext[] = {"", NULL};
 static const char *redshifton[] = {"redshift", "-P", "-O", "4000", "&&", "notify-send", "test", NULL};
 static const char *redshiftoff[] = {"redshift", "-P", "-O", "7000", "&&", "notify-send", "test", NULL};
 
-static const char *myscrot[] = {"myscrot", NULL};
-static const char *runfm[] = {"st", "lf",  NULL};
 
-static const char *rssreader[] = {"st", "newsboat", NULL};
-static const char *abook[] = {"st", "abook", NULL};
-static const char *browser[] = {"firefox", NULL};
-static const char *mailclient[] = {"st", "neomutt", NULL};
+static const char *scapture[] = {"myscrot", NULL};
+static const char *musicplayer[] = {"alacritty", "-e", "ncmpcpp", NULL};
+static const char *runfm[] = {"alacritty", "-e", "lf",  NULL};
+
+static const char *rssreader[] = {"alacritty", "-e", "newsboat", NULL};
+static const char *abook[] = {"alacritty", "-e", "abook", NULL};
+static const char *browser[] = {"brave", NULL};
+static const char *mailclient[] = {"alacritty", "-e", "neomutt", NULL};
 
 static const char *suspend[] = {"systemctl", "suspend", NULL};
 static const char *hibernate[] = {"systemctl", "hibernate", NULL};
 static const char *redwm[] = {"kill" "$(pgrep", "dwm)", NULL};
-static const char *slock[] = {"slock", NULL};
+static const char *slock[] = {"sudo", "slock", NULL};
 
-static const char *procman[] = {"st", "htop"};
+static const char *procman[] = {"alacritty", "-e", "htop"};
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -120,7 +140,10 @@ static Key keys[] = {
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
-	/* Useless for tile */
+        /* Bookmarking */
+        { MODKEY,                       XK_z,      spawn,       SHCMD("xdotool type $(grep -v '^#' ~/.local/share/bookmarks | dmenu -i -l 50 | cut -d' ' -f1)") },
+        { MODKEY|ShiftMask,             XK_z,      spawn,       SHCMD("alacritty -e $EDITOR ~/.local/share/bookmarks")}, 
+	/* Useless for tile. Will be completely removed soon*/
      /* { MODKEY|ShiftMask,             XK_h,      setcfact,       {.f = +0.25} },
 	{ MODKEY|ShiftMask,             XK_l,      setcfact,       {.f = -0.25} },
 	{ MODKEY|ShiftMask,             XK_o,      setcfact,       {.f =  0.00} }, */
@@ -151,17 +174,20 @@ static Key keys[] = {
 	{ 0, XF86XK_AudioLowerVolume,    spawn,         { .v = vdowncmd } },
 	{ 0, XF86XK_AudioMute,		 spawn,		{ .v = mutefn } },
 
+	{ MODKEY,			XK_F5,	spawn,		{ .v = musicplayer } },
+
 	{ 0, XF86XK_AudioPlay,		spawn,		{ .v = musicplay } },
        	{ 0, XF86XK_AudioPrev,		spawn,		{ .v = musicprev } },
 	{ 0, XF86XK_AudioNext,		spawn,		{ .v = musicnext } },
 
-	{ MODKEY,			XK_s, spawn,		{ .v = myscrot } },
+	{ MODKEY,			XK_s, spawn,		SHCMD("maim -s | tee ~/Pictures/Screenshots/$(date +%s).png | xclip -selection clipboard -t image/png") },
+        { MODKEY,                       XK_c, spawn,            SHCMD("colorpicker --short --one-shot | xclip") },
 	{ MODKEY,			XK_v, spawn,		{ .v = runfm } },
-	{ MODKEY|ShiftMask,		XK_b, spawn,		{ .v = browser } },
+	{ MODKEY|ShiftMask,		XK_b, spawn,		{ .v = browser} },
 
 	{ MODKEY|ShiftMask,		XK_x, spawn,		{ .v = suspend } },
-	{ MODKEY|ShiftMask,		XK_p, spawn,		{ .v = slock } },
-	{ MODKEY|ShiftMask,		XK_z, spawn,		{ .v = hibernate } },
+	{ MODKEY|ShiftMask,		XK_F1, spawn,		{ .v = slock } },
+	{ MODKEY|ShiftMask,		XK_z,  spawn,		{ .v = hibernate } },
 
 	{ MODKEY|ShiftMask,		XK_h, spawn,		{ .v = procman } },
 	{ MODKEY|ShiftMask,		XK_m, spawn,		{ .v = mailclient } },
