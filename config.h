@@ -181,7 +181,7 @@ static Key keys[] = {
 	{ 0, XF86XK_AudioNext,		spawn,		{ .v = musicnext } },
 
 	{ MODKEY,			XK_s, spawn,		SHCMD("maim -s | tee ~/Pictures/Screenshots/$(date +%s).png | xclip -selection clipboard -t image/png") },
-        { MODKEY,                       XK_c, spawn,            SHCMD("colorpicker --short --one-shot | xclip") },
+        { MODKEY,                       XK_u, spawn,            SHCMD("galculator") },
 	{ MODKEY,			XK_v, spawn,		{ .v = runfm } },
 	{ MODKEY|ShiftMask,		XK_b, spawn,		{ .v = browser} },
 
